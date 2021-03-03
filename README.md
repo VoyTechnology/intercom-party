@@ -44,6 +44,15 @@ The defaults can howeverbe changed by the following flags:
 | `-office`   | `Dublin`  | Office to be used to host the party. Currently only `Dublin` is available, but more can be added in `internal/office/office.go`. In the future this can be replaced by office inventory system or some dynamic API call.
 | `-distance` | `100km` | Human readable format for writing the maximum distance. This is in a format of `Xkm`, `XkmYm`, `Ym`, where `X` and `Y` are numbers.
 
+---
+
+## Testing
+
+All tests can be ran by the following command
+
+```shell
+go test ./...
+```
 
 ---
 
