@@ -1,4 +1,4 @@
-# Intercom Party
+# Intercom Party 🥳
 
 Intercom Party invitation system
 
