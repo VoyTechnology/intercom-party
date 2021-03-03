@@ -1,10 +1,9 @@
-package main
+package main // import "github.com/voytechnology/intercom-party/cmd/party"
 
 import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"sort"
 
@@ -15,7 +14,7 @@ import (
 
 func main() {
 	if err := run(); err != nil {
-		log.Printf("%+v\n", err)
+		fmt.Fprintf(os.Stderr, "%+v\n", err)
 		os.Exit(1)
 	}
 }
@@ -29,10 +28,10 @@ func run() error {
 	flag.Parse()
 
 	return customersInOfficeRadius(
-		os.Stdin, os.Stdout, *officeFlag, *distanceFlag)
+		os.Stdin, os.Stdout, *officeFlag, *distanceFlag, distance.Distance)
 }
 
-func customersInOfficeRadius(r io.Reader, w io.Writer, officeName, dist string) error {
+func customersInOfficeRadius(r io.Reader, w io.Writer, officeName, dist string, distFn distanceFunc) error {
 	officeCoords, err := office.Coordinates(officeName)
 	if err != nil {
 		return fmt.Errorf("unable to get office coordinates for office %s: %w",
@@ -49,7 +48,7 @@ func customersInOfficeRadius(r io.Reader, w io.Writer, officeName, dist string) 
 		return fmt.Errorf("unable to parse customers: %w", err)
 	}
 
-	invited := customer.Filter(customers, withinRadius(distance.Distance, officeCoords, maxDistance))
+	invited := customer.Filter(customers, withinRadius(distFn, officeCoords, maxDistance))
 
 	// sort all customers in ascending order by their customer ID.
 	sort.Sort(customer.ByID(invited))
@@ -61,7 +60,7 @@ func customersInOfficeRadius(r io.Reader, w io.Writer, officeName, dist string) 
 	return nil
 }
 
-func withinRadius(distFn func(x1, y1, x2, y2 float64) float64, from []float64, max int) func(c customer.Customer) bool {
+func withinRadius(distFn distanceFunc, from []float64, max int) func(c customer.Customer) bool {
 	return func(c customer.Customer) bool {
 		return distFn(
 			c.Latitude,
@@ -70,3 +69,5 @@ func withinRadius(distFn func(x1, y1, x2, y2 float64) float64, from []float64, m
 			from[1]) < float64(max)
 	}
 }
+
+type distanceFunc func(x1, y1, x2, y2 float64) float64

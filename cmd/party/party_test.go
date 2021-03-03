@@ -14,13 +14,12 @@ import (
 )
 
 func TestCustomersInOfficeRadius_Within(t *testing.T) {
-	// ~41.75km from the office
 	want := `{"user_id":12,"name":"Christina McArdle","longitude":"-6.043701","latitude":"52.986375"}`
 	in := strings.NewReader(want)
 
 	out := new(bytes.Buffer)
 
-	if err := customersInOfficeRadius(in, out, "Dublin", "100km"); err != nil {
+	if err := customersInOfficeRadius(in, out, "Dublin", "100km", distance.Distance); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -32,12 +31,11 @@ func TestCustomersInOfficeRadius_Within(t *testing.T) {
 }
 
 func TestCustomersInOfficeRadius_Outside(t *testing.T) {
-	// ~41.75km from the office
 	in := strings.NewReader(`{"latitude": "52.986375", "user_id": 12, "name": "Christina McArdle", "longitude": "-6.043701"}`)
 
 	out := new(bytes.Buffer)
 
-	if err := customersInOfficeRadius(in, out, "Dublin", "30km"); err != nil {
+	if err := customersInOfficeRadius(in, out, "Dublin", "30km", distance.Distance); err != nil {
 		t.Fatalf("unexpected error: %v", err)
 	}
 
@@ -51,7 +49,7 @@ func TestCustomersInOfficeRadius_Outside(t *testing.T) {
 func TestCustomersInOfficeRadius_BadOffice(t *testing.T) {
 	in, out := new(bytes.Buffer), new(bytes.Buffer)
 
-	if err := customersInOfficeRadius(in, out, "Bad Office", "100km"); !errors.Is(err, office.ErrInvalidOffice) {
+	if err := customersInOfficeRadius(in, out, "Bad Office", "100km", distance.Distance); !errors.Is(err, office.ErrInvalidOffice) {
 		t.Fatalf("bad office err = %v, want %v", err, office.ErrInvalidOffice)
 	}
 }
@@ -59,18 +57,17 @@ func TestCustomersInOfficeRadius_BadOffice(t *testing.T) {
 func TestCustomersInOfficeRadius_BadDistance(t *testing.T) {
 	in, out := new(bytes.Buffer), new(bytes.Buffer)
 
-	if err := customersInOfficeRadius(in, out, "Dublin", "bad distance"); !errors.Is(err, distance.ErrInvalidDistance) {
+	if err := customersInOfficeRadius(in, out, "Dublin", "bad distance", distance.Distance); !errors.Is(err, distance.ErrInvalidDistance) {
 		t.Fatalf("bad office err = %v, want %v", err, distance.ErrInvalidDistance)
 	}
 }
 
 func TestCustomersInOfficeRadius_BadCustomers(t *testing.T) {
-	// ~41.75km from the office
-	in := strings.NewReader(`{"latitude": "1.1", "user_id": 12, "name": "Christina McArdle", "longitude": "-6.043701"}`)
+	in := strings.NewReader(`{"latitude": "bad", "user_id": 12, "name": "Christina McArdle", "longitude": "-6.043701"}`)
 
 	out := &badWriter{}
 
-	if err := customersInOfficeRadius(in, out, "Dublin", "30km"); !errors.Is(err, errBadWriter) {
+	if err := customersInOfficeRadius(in, out, "Dublin", "30km", distance.Distance); !errors.Is(err, strconv.ErrSyntax) {
 		t.Fatalf("unexpected error: %v, want %v", err, strconv.ErrSyntax)
 	}
 }

@@ -3,6 +3,7 @@ package distance
 import (
 	"errors"
 	"fmt"
+	"math"
 	"testing"
 )
 
@@ -45,15 +46,40 @@ func TestParse(t *testing.T) {
 
 func TestDistance(t *testing.T) {
 	testCases := map[float64][]float64{
-		0: {0, 0, 0, 0},
+		0:         {0, 0, 0, 0},
+		45711.259: {52.986375, -6.043701, 53.339428, -6.257664}, // Christina McArdle
 	}
 
 	for want, in := range testCases {
 		t.Run(fmt.Sprint(want), func(t *testing.T) {
 			got := Distance(in[0], in[1], in[2], in[3])
-			if got != want {
+			if !equal(got, want) {
 				t.Errorf("Distance() = %v, want %v", got, want)
 			}
 		})
 	}
+}
+
+func TestDtor(t *testing.T) {
+	testCases := map[float64]float64{
+		0:   0,
+		180: math.Pi,
+		360: 2 * math.Pi,
+		90:  math.Pi / 2,
+		45:  math.Pi / 4,
+	}
+
+	for in, want := range testCases {
+		t.Run(fmt.Sprint(in), func(t *testing.T) {
+			if got := dtor(in); got != want {
+				t.Errorf("dtor(%f) = %f, want %f", in, got, want)
+			}
+		})
+	}
+}
+
+// Float equality check within a threshold. We are dealing with meters here, so
+// we don't care about extreme precision.
+func equal(a, b float64) bool {
+	return math.Abs(a-b) <= 0.01
 }
